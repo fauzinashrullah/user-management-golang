@@ -1,4 +1,4 @@
-module learn
+module user-management-golang
 
 go 1.24.5
 
