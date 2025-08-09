@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"strconv"
 	"strings"
 
 	"user-management-golang/db"
@@ -15,6 +16,11 @@ type loginRequest struct {
 	Name     string
 	Password string
 }
+type userResponse struct {
+	ID   uint
+	Name string
+	Age  int
+}
 
 func GetUser(c *gin.Context) {
 	name := strings.ToLower(c.Query("name"))
@@ -26,7 +32,12 @@ func GetUser(c *gin.Context) {
 	}
 
 	query.Find(&users)
-	c.JSON(200, users)
+	var responses []userResponse
+	for _, user := range users {
+		response := toResponse(user)
+		responses = append(responses, response)
+	}
+	c.JSON(200, responses)
 }
 
 func Register(c *gin.Context) {
@@ -63,7 +74,8 @@ func Register(c *gin.Context) {
 	}
 
 	db.Database().Create(&user)
-	c.JSON(200, user)
+	response := toResponse(user)
+	c.JSON(200, response)
 }
 
 func Login(c *gin.Context) {
@@ -84,11 +96,15 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	token, _ := security.GenerateJwt(string(user.ID))
-	var response []any
-	response = append(response, user)
-	response = append(response, token)
-	c.JSON(200, response)
+	token, _ := security.GenerateJwt(strconv.FormatUint(uint64(user.ID), 10))
+	tokenResponse := map[string]string{"Token": token}
+
+	response := toResponse(user)
+
+	var responses []any
+	responses = append(responses, response)
+	responses = append(responses, tokenResponse)
+	c.JSON(200, responses)
 }
 
 func GetDetailUser(c *gin.Context) {
@@ -99,5 +115,15 @@ func GetDetailUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(200, user)
+	response := toResponse(user)
+
+	c.JSON(200, response)
+}
+
+func toResponse(user model.User) userResponse {
+	var response userResponse
+	response.ID = user.ID
+	response.Name = user.Name
+	response.Age = user.Age
+	return response
 }
