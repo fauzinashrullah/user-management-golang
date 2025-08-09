@@ -8,8 +8,8 @@ import (
 )
 
 func Route(r *gin.Engine) {
+	r.POST("/register", controller.Register)
+	r.POST("/login", controller.Login)
 	r.GET("/users", middleware.AuthMiddleware(), controller.GetUser)
-	r.POST("/users", controller.Register)
-	r.GET("/users/:id", controller.GetDetailUser)
-	r.POST("/users/login", controller.Login)
+	r.GET("/users/:id", middleware.AuthMiddleware(), controller.GetDetailUser)
 }
