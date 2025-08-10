@@ -1,15 +1,29 @@
 package router
 
 import (
-	"user-management-golang/controller"
+	"user-management-golang/db"
+	"user-management-golang/handlers"
 	"user-management-golang/middleware"
+	"user-management-golang/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-func Route(r *gin.Engine) {
-	r.POST("/register", controller.Register)
-	r.POST("/login", controller.Login)
-	r.GET("/users", middleware.AuthMiddleware(), controller.GetUser)
-	r.GET("/users/:id", middleware.AuthMiddleware(), controller.GetDetailUser)
+func Route() *gin.Engine {
+	r := gin.Default()
+
+	db := db.Database()
+
+	authService := services.NewAuthService(db)
+	authHandler := handlers.NewAuthHandler(authService)
+
+	userService := services.NewUserService(db)
+	userHandler := handlers.NewUserHandler(userService)
+
+	r.POST("/register", authHandler.Register)
+	r.POST("/login", authHandler.Login)
+	r.GET("/users", middleware.AuthMiddleware(), userHandler.GetUser)
+	r.GET("/users/:id", middleware.AuthMiddleware(), userHandler.GetUserDetail)
+
+	return r
 }
