@@ -2,9 +2,9 @@ package controller
 
 import (
 	"strconv"
+	"user-management-golang/config"
 	"user-management-golang/db"
 	"user-management-golang/model"
-	"user-management-golang/security"
 
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -24,6 +24,8 @@ func Register(c *gin.Context) {
 			switch err.Field() {
 			case "Name":
 				errors = append(errors, "Nama wajib diisi dan minimal 3 karakter")
+			case "Username":
+				errors = append(errors, "Username wajib diisi dan minimal 3 karakter")
 			case "Age":
 				errors = append(errors, "Umur harus antara 18 sampai 60")
 			case "Password":
@@ -36,7 +38,12 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	if hash, err := security.HashPassword(user.Password); err != nil {
+	if err := db.Database().Where("username = ?", user.Username).First(&user).Error; err == nil {
+		c.JSON(400, gin.H{"error": "Username not available"})
+		return
+	}
+
+	if hash, err := config.HashPassword(user.Password); err != nil {
 		c.JSON(400, gin.H{"error": "invalid data"})
 		return
 	} else {
@@ -56,17 +63,17 @@ func Login(c *gin.Context) {
 	}
 
 	var user model.User
-	if err := db.Database().Where("name = ?", req.Name).First(&user).Error; err != nil {
-		c.JSON(400, gin.H{"error": "Not found"})
+	if err := db.Database().Where("username = ?", req.Username).First(&user).Error; err != nil {
+		c.JSON(400, gin.H{"error": "User not found"})
 		return
 	}
 
-	if !security.VerifyPassword(req.Password, user.Password) {
+	if !config.VerifyPassword(req.Password, user.Password) {
 		c.JSON(400, gin.H{"error": "Password not valid"})
 		return
 	}
 
-	token, _ := security.GenerateJwt(strconv.FormatUint(uint64(user.ID), 10))
+	token, _ := config.GenerateJwt(strconv.FormatUint(uint64(user.ID), 10))
 	tokenResponse := map[string]string{"Token": token}
 
 	response := toResponse(user)

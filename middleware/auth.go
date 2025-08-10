@@ -3,7 +3,7 @@ package middleware
 import (
 	"log"
 	"strings"
-	"user-management-golang/security"
+	"user-management-golang/config"
 
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt/v5"
@@ -24,7 +24,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-			return security.JwtSecret, nil
+			return config.JwtSecret, nil
 		})
 
 		log.Println(token)
