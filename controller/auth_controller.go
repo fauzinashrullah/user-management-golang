@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"net/http"
 	"strconv"
 	"user-management-golang/config"
 	"user-management-golang/db"
@@ -13,7 +14,7 @@ import (
 func Register(c *gin.Context) {
 	var user model.User
 	if err := c.BindJSON(&user); err != nil {
-		c.JSON(400, gin.H{"error": "invalid data"})
+		jsonError(c, http.StatusBadRequest, "Invalid data")
 		return
 	}
 
@@ -34,17 +35,17 @@ func Register(c *gin.Context) {
 				errors = append(errors, err.Error())
 			}
 		}
-		c.JSON(400, gin.H{"error": errors})
+		jsonError(c, http.StatusBadRequest, errors)
 		return
 	}
 
 	if err := db.Database().Where("username = ?", user.Username).First(&user).Error; err == nil {
-		c.JSON(400, gin.H{"error": "Username not available"})
+		jsonError(c, http.StatusBadRequest, "Username not available")
 		return
 	}
 
 	if hash, err := config.HashPassword(user.Password); err != nil {
-		c.JSON(400, gin.H{"error": "invalid data"})
+		jsonError(c, http.StatusBadRequest, "Invalid data")
 		return
 	} else {
 		user.Password = hash
@@ -52,24 +53,24 @@ func Register(c *gin.Context) {
 
 	db.Database().Create(&user)
 	response := toResponse(user)
-	c.JSON(200, response)
+	jsonSuccess(c, response, "Register success")
 }
 
 func Login(c *gin.Context) {
 	var req loginRequest
 	if err := c.BindJSON(&req); err != nil {
-		c.JSON(400, gin.H{"error": "Invalid data"})
+		jsonError(c, http.StatusBadRequest, "Invalid data")
 		return
 	}
 
 	var user model.User
 	if err := db.Database().Where("username = ?", req.Username).First(&user).Error; err != nil {
-		c.JSON(400, gin.H{"error": "User not found"})
+		jsonError(c, http.StatusNotFound, "User not found")
 		return
 	}
 
 	if !config.VerifyPassword(req.Password, user.Password) {
-		c.JSON(400, gin.H{"error": "Password not valid"})
+		jsonError(c, http.StatusBadRequest, "Invalid password")
 		return
 	}
 
@@ -81,5 +82,5 @@ func Login(c *gin.Context) {
 	var responses []any
 	responses = append(responses, response)
 	responses = append(responses, tokenResponse)
-	c.JSON(200, responses)
+	jsonSuccess(c, responses, "Login success")
 }

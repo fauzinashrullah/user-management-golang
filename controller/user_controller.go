@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"net/http"
 	"strings"
 
 	"user-management-golang/db"
@@ -24,18 +25,18 @@ func GetUser(c *gin.Context) {
 		response := toResponse(user)
 		responses = append(responses, response)
 	}
-	c.JSON(200, responses)
+	jsonSuccess(c, responses, "Get user success")
 }
 
 func GetDetailUser(c *gin.Context) {
 	id := c.Param("id")
 	var user model.User
 	if err := db.Database().First(&user, "id = ?", id).Error; err != nil {
-		c.JSON(400, gin.H{"error": "not found"})
+		jsonError(c, http.StatusNotFound, "User not found")
 		return
 	}
 
 	response := toResponse(user)
 
-	c.JSON(200, response)
+	jsonSuccess(c, response, "Get detail user success")
 }

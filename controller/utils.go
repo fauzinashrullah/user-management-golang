@@ -1,6 +1,11 @@
 package controller
 
-import "user-management-golang/model"
+import (
+	"net/http"
+	"user-management-golang/model"
+
+	"github.com/gin-gonic/gin"
+)
 
 type loginRequest struct {
 	Username string
@@ -13,6 +18,12 @@ type userResponse struct {
 	Username string
 }
 
+type apiResponse struct {
+	Status  string `json:"status"`
+	Message any    `json:"message"`
+	Data    any    `json:"data"`
+}
+
 func toResponse(user model.User) userResponse {
 	var response userResponse
 	response.ID = user.ID
@@ -20,4 +31,19 @@ func toResponse(user model.User) userResponse {
 	response.Age = user.Age
 	response.Username = user.Username
 	return response
+}
+
+func jsonSuccess(c *gin.Context, data any, msg string) {
+	c.JSON(http.StatusOK, apiResponse{
+		Status:  "success",
+		Message: msg,
+		Data:    data,
+	})
+}
+
+func jsonError(c *gin.Context, code int, msg any) {
+	c.JSON(code, apiResponse{
+		Status:  "error",
+		Message: msg,
+	})
 }
