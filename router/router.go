@@ -23,8 +23,8 @@ func Route() *gin.Engine {
 	r.POST("/register", authHandler.Register)
 	r.POST("/login", authHandler.Login)
 	r.GET("/users", middleware.AuthMiddleware(), userHandler.CurrentUser)
-	r.GET("/admin/users", middleware.AuthMiddleware(), userHandler.GetUser)
-	r.GET("/admin/users/:id", middleware.AuthMiddleware(), userHandler.GetUserDetail)
+	r.GET("/admin/users", middleware.AuthMiddleware(), middleware.RequireRole("admin"), userHandler.GetUser)
+	r.GET("/admin/users/:id", middleware.AuthMiddleware(), middleware.RequireRole("admin"), userHandler.GetUserDetail)
 
 	return r
 }

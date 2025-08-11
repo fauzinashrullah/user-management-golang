@@ -34,6 +34,7 @@ func (h *UserHandler) CurrentUser(c *gin.Context) {
 
 func (h *UserHandler) GetUser(c *gin.Context) {
 	name := c.Query("name")
+
 	response := h.service.GetUser(name)
 	utils.JSONSuccess(c, response, "Get user success")
 }

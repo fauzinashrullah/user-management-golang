@@ -9,10 +9,10 @@ import (
 
 func Database() *gorm.DB {
 
-	dsn := "host=localhost user=postgres password=postgres dbname=learn port=5432 sslmode=disable"
+	dsn := "host=localhost user=postgres password=postgres dbname=user_management_golang port=5432 sslmode=disable"
 	db, err := gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
-		panic("gagal koneksi ke database")
+		panic("failed connect to database")
 	}
 
 	db.AutoMigrate(&model.User{})

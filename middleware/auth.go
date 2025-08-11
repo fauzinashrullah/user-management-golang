@@ -39,8 +39,27 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		userID := claims["sub"].(string)
+		role := claims["role"].(string)
 		c.Set("userID", userID)
+		c.Set("role", role)
 
+		c.Next()
+	}
+}
+
+func RequireRole(role string) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		userRole, exist := c.Get("role")
+		if !exist {
+			utils.JSONError(c, http.StatusForbidden, "Forbidden")
+			c.Abort()
+			return
+		}
+		if userRole != role {
+			utils.JSONError(c, http.StatusForbidden, "Forbidden")
+			c.Abort()
+			return
+		}
 		c.Next()
 	}
 }

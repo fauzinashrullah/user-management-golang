@@ -37,7 +37,7 @@ func (s *authService) Login(username, password string) (*[]any, error) {
 		return nil, errors.New("invalid password")
 	}
 
-	token, _ := config.GenerateJwt(strconv.FormatUint(uint64(user.ID), 10))
+	token, _ := config.GenerateJwt(strconv.FormatUint(uint64(user.ID), 10), user.Role)
 	tokenResponse := map[string]string{"Token": token}
 
 	response := utils.ToResponse(user)
@@ -58,6 +58,7 @@ func (s *authService) Register(user model.User) (*model.User, error) {
 		return nil, errors.New("failed generate password")
 	}
 	user.Password = hash
+	user.Role = "user"
 	s.db.Create(&user)
 
 	return &user, nil
