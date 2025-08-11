@@ -11,7 +11,7 @@ import (
 )
 
 type AuthService interface {
-	Login(username, password string) (*[]any, error)
+	Login(username, password string) (*model.LoginResponse, error)
 	Register(user model.User) (*model.User, error)
 	isUsernameExist(username string) bool
 }
@@ -24,7 +24,7 @@ func NewAuthService(db *gorm.DB) AuthService {
 	return &authService{db: db}
 }
 
-func (s *authService) Login(username, password string) (*[]any, error) {
+func (s *authService) Login(username, password string) (*model.LoginResponse, error) {
 	var user model.User
 	if err := s.db.Where("username = ?", username).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -38,14 +38,10 @@ func (s *authService) Login(username, password string) (*[]any, error) {
 	}
 
 	token, _ := config.GenerateJwt(strconv.FormatUint(uint64(user.ID), 10), user.Role)
-	tokenResponse := map[string]string{"Token": token}
 
-	response := utils.ToResponse(user)
+	response := utils.ToLoginResponse(user, token)
 
-	var responses []any
-	responses = append(responses, response)
-	responses = append(responses, tokenResponse)
-	return &responses, nil
+	return &response, nil
 }
 
 func (s *authService) Register(user model.User) (*model.User, error) {
