@@ -16,6 +16,22 @@ func NewUserHandler(s services.UserService) *UserHandler {
 	return &UserHandler{service: s}
 }
 
+func (h *UserHandler) CurrentUser(c *gin.Context) {
+	userID, exist := c.Get("userID")
+	if !exist {
+		utils.JSONError(c, http.StatusUnauthorized, "Unauthorized")
+		return
+	}
+
+	response, err := h.service.GetUserDetail(userID.(string))
+	if err != nil {
+		utils.JSONError(c, http.StatusBadRequest, err.Error())
+		return
+	}
+
+	utils.JSONSuccess(c, response, "Get user detail success")
+}
+
 func (h *UserHandler) GetUser(c *gin.Context) {
 	name := c.Query("name")
 	response := h.service.GetUser(name)
@@ -30,5 +46,5 @@ func (h *UserHandler) GetUserDetail(c *gin.Context) {
 		return
 	}
 
-	utils.JSONSuccess(c, response, "Get user Detail success")
+	utils.JSONSuccess(c, response, "Get user detail success")
 }
