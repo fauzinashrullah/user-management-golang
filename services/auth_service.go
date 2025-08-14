@@ -28,13 +28,13 @@ func (s *authService) Login(username, password string) (*model.LoginResponse, er
 	var user model.User
 	if err := s.db.Where("username = ?", username).First(&user).Error; err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, errors.New("user not found")
+			return nil, errors.New("invalid username or password")
 		}
 		return nil, err
 	}
 
 	if !config.VerifyPassword(password, user.Password) {
-		return nil, errors.New("invalid password")
+		return nil, errors.New("invalid username or password")
 	}
 
 	token, _ := config.GenerateJwt(strconv.FormatUint(uint64(user.ID), 10), user.Role)
